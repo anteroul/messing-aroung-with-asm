@@ -1,0 +1,36 @@
+Turbo Assembler	 Version 2.51	     10/28/22 22:38:02	    Page 1
+pong.ASM
+
+
+
+      1	0000			     DATA SEGMENT PARA 'DATA'
+      2					     ;BALL_X DW	0Ah
+      3					     ;BALL_Y DW	0Ah
+      4	0000			     DATA ENDS
+      5
+      6	0000			     CODE SEGMENT PARA 'CODE'
+      7
+      8	0000				     MAIN PROC FAR
+      9						     ; set video mode:
+     10	0000  B4 00				     MOV AH, 00h
+     11	0002  B0 13				     MOV AL, 13h
+     12	0004  CD 10				     INT 10h
+     13						     ; set background colour:
+     14	0006  B4 0B				     MOV AH, 0Bh
+     15	0008  B7 00				     MOV BH, 00h
+     16	000A  B3 00				     MOV BL, 00h
+     17	000C  CD 10				     INT 10h
+     18
+     19	000E  B4 0C				     MOV AH, 0Ch
+     20	0010  B0 0B				     MOV AL, 0Bh
+     21	0012  B7 00				     MOV BH, 00h
+     22	0014  B9 000A				     MOV CX, 0Ah
+     23	0017  BA 000A				     MOV DX, 0Ah
+     24	001A  CD 10				     INT 10h
+     25
+     26	001C  CB				     RET
+     27	001D				     MAIN ENDP
+     28
+     29	001D			     CODE ENDS
+     30				     END
+
