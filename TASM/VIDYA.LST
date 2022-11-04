@@ -1,0 +1,32 @@
+Turbo Assembler	 Version 2.51	     10/28/22 22:34:51	    Page 1
+vidya.ASM
+
+
+
+      1	0000			     .MODEL SMALL
+      2
+      3	0000			     .DATA
+      4
+      5	0000			     .STACK
+      6
+      7	0000			     .CODE
+      8	0000				     START:
+      9						     ; set video mode:
+     10
+     11	0000  B4 00				     MOV     AH,     00h
+     12	0002  B0 13				     MOV     AL,     13h
+     13	0004  CD 10				     INT     10h
+     14
+     15						     ; set background colour:
+     16
+     17	0006  B4 0B				     MOV     AH,     0Bh
+     18	0008  B7 00				     MOV     BH,     00h
+     19	000A  B3 01				     MOV     BL,     01h
+     20	000C  CD 10				     INT     10h
+     21
+     22	000E  B4 4C				     MOV     AH,     4CH
+     23	0010  CD 10				     INT     10h
+     24	0012  C3				     RET
+     25
+     26					     END     START
+
