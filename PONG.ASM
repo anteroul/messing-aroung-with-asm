@@ -20,10 +20,10 @@ DATA SEGMENT PARA 'DATA'
         TEXT_GAME_OVER_WINNER           DB 'Player 0 won','$'
         TEXT_GAME_OVER_PLAY_AGAIN       DB 'Press R to play again','$'
         TEXT_GAME_OVER_MAIN_MENU        DB 'Press E to exit','$'
-        TEXT_MAIN_MENU_TITLE            DB 'PONG','$'
-        TEXT_MAIN_MENU_SINGLEPLAYER     DB 'START GAME - S KEY','$'
-        TEXT_MAIN_MENU_MULTIPLAYER      DB 'MULTIPLAYER - M KEY','$'
-        TEXT_MAIN_MENU_EXIT             DB 'EXIT GAME - E KEY','$'
+        TEXT_MAIN_MENU_TITLE            DB 'PONG - Main Menu','$'
+        TEXT_MAIN_MENU_SINGLEPLAYER     DB 'Start Game - S KEY','$'
+        TEXT_MAIN_MENU_MULTIPLAYER      DB 'Start Game - S KEY','$'
+        TEXT_MAIN_MENU_EXIT             DB 'Exit Game - E KEY','$'
 	
         BALL_ORIGINAL_X                 DW 0A0h              ; initial X-position of the ball
         BALL_ORIGINAL_Y                 DW 64h               ; initial Y-position of the ball
