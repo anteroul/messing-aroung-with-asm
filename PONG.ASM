@@ -19,49 +19,49 @@ DATA SEGMENT PARA 'DATA'
         TEXT_GAME_OVER_TITLE            DB 'GAME OVER','$'
         TEXT_GAME_OVER_WINNER           DB 'Player 0 won','$'
         TEXT_GAME_OVER_PLAY_AGAIN       DB 'Press R to play again','$'
-        TEXT_GAME_OVER_MAIN_MENU        DB 'Press E to exit to main menu','$'
-        TEXT_MAIN_MENU_TITLE            DB 'MAIN MENU','$'
-        TEXT_MAIN_MENU_SINGLEPLAYER     DB 'SINGLEPLAYER - S KEY','$'
+        TEXT_GAME_OVER_MAIN_MENU        DB 'Press E to exit','$'
+        TEXT_MAIN_MENU_TITLE            DB 'PONG','$'
+        TEXT_MAIN_MENU_SINGLEPLAYER     DB 'START GAME - S KEY','$'
         TEXT_MAIN_MENU_MULTIPLAYER      DB 'MULTIPLAYER - M KEY','$'
         TEXT_MAIN_MENU_EXIT             DB 'EXIT GAME - E KEY','$'
 	
-        BALL_ORIGINAL_X                 DW 0A0h              ;X position of the ball on the beginning of a game
-        BALL_ORIGINAL_Y                 DW 64h               ;Y position of the ball on the beginning of a game
-        BALL_X                          DW 0Ah               ;current X position (column) of the ball
-        BALL_Y                          DW 64h               ;current Y position (line) of the ball
-        BALL_SIZE                       DW 06h               ;size of the ball (how many pixels does the ball have in width and height)
-        BALL_VELOCITY_X                 DW 05h               ;X (horizontal) velocity of the ball
-        BALL_VELOCITY_Y                 DW 02h               ;Y (vertical) velocity of the ball
+        BALL_ORIGINAL_X                 DW 0A0h              ; initial X-position of the ball
+        BALL_ORIGINAL_Y                 DW 64h               ; initial Y-position of the ball
+        BALL_X                          DW 0Ah               ; current X-position of the ball
+        BALL_Y                          DW 64h               ; current Y-position of the ball
+        BALL_SIZE                       DW 06h               ; size of the ball (pixels * width * pixels * height)
+        BALL_VELOCITY_X                 DW 05h               ; horizontal velocity
+        BALL_VELOCITY_Y                 DW 02h               ; vertical velocity
 	
-        PADDLE_LEFT_X                   DW 0Ah               ;current X position of the left paddle
-        PADDLE_LEFT_Y                   DW 55h               ;current Y position of the left paddle
-        PLAYER_ONE_POINTS               DB 0                 ;current points of the left player (player one)
+        PADDLE_LEFT_X                   DW 0Ah               ; current X-position of the left paddle
+        PADDLE_LEFT_Y                   DW 55h               ; current Y-position of the left paddle
+        PLAYER_ONE_POINTS               DB 0                 ; current points of the left player (player one)
 	
-        PADDLE_RIGHT_X                  DW 130h              ;current X position of the right paddle
-        PADDLE_RIGHT_Y                  DW 55h               ;current Y position of the right paddle
-        PLAYER_TWO_POINTS               DB 0                 ;current points of the right player (player two)
+        PADDLE_RIGHT_X                  DW 130h              ; current X-position of the right paddle
+        PADDLE_RIGHT_Y                  DW 55h               ; current Y-position of the right paddle
+        PLAYER_TWO_POINTS               DB 0                 ; current points of the right player (player two)
 	
-        PADDLE_WIDTH                    DW 06h               ;default paddle width
-        PADDLE_HEIGHT                   DW 25h               ;default paddle height
-        PADDLE_VELOCITY                 DW 0Fh               ;default paddle velocity
+        PADDLE_WIDTH                    DW 06h               ; default paddle width
+        PADDLE_HEIGHT                   DW 25h               ; default paddle height
+        PADDLE_VELOCITY                 DW 0Fh               ; default paddle velocity
 
 DATA ENDS
 
 CODE SEGMENT PARA 'CODE'
 
 	MAIN PROC FAR
-	ASSUME CS:CODE,DS:DATA,SS:STACK      ;assume as code,data and stack segments the respective registers
-	PUSH DS                              ;push to the stack the DS segment
-        SUB AX, AX                           ;clean the AX register
-	PUSH AX                              ;push AX to the stack
-        MOV AX, DATA                         ;save on the AX register the contents of the DATA segment
-        MOV DS, AX                           ;save on the DS segment the contents of AX
-	POP AX                               ;release the top item from the stack to the AX register
-	POP AX                               ;release the top item from the stack to the AX register
+	ASSUME CS:CODE,DS:DATA,SS:STACK
+	PUSH DS                                 ; push to the stack the DS segment
+        SUB AX, AX                              ; clean the AX register
+	PUSH AX                                 ; push AX to the stack
+        MOV AX, DATA                            ; move DATA to register AX
+        MOV DS, AX                              ; move to the DS segment the contents of AX
+	POP AX                                  ; pop the top item from the stack to the AX register
+	POP AX
 		
-                CALL CLEAR_SCREEN                       ;set initial video mode configurations
+                CALL CLEAR_SCREEN                       ; set initial video mode
 		
-                CHECK_TIME:                             ;time checking loop
+                CHECK_TIME:                             ; timer loop
 			
                         CMP EXITING_GAME, 01h
 			JE START_EXIT_PROCESS
@@ -72,28 +72,22 @@ CODE SEGMENT PARA 'CODE'
                         CMP GAME_ACTIVE, 00h
 			JE SHOW_GAME_OVER
 			
-                        MOV AH, 2Ch                             ;get the system time
-                        INT 21h                                 ;CH = hour CL = minute DH = second DL = 1/100 seconds
+                        MOV AH, 2Ch                             ; get system time
+                        INT 21h                                 ; CH = hour, CL = minute, DH = second, DL = 1/100th of a second
 			
-                        CMP DL, TIME_AUX                        ;is the current time equal to the previous one(TIME_AUX)?
-                        JE CHECK_TIME                           ;if it is the same, check again
+                        CMP DL, TIME_AUX                        ; check if the current time is equal to the previous one(TIME_AUX) ?
+                        JE CHECK_TIME                           ; if it is, continue the loop
 			
-                ;If it reaches this point, it's because the time has passed
-
-
-                        MOV TIME_AUX, DL                ;update time
+                        MOV TIME_AUX, DL                        ; update time
 			
-                        CALL CLEAR_SCREEN               ;clear the screen by restarting the video mode
+                        CALL CLEAR_SCREEN                       ; reset video mode
+                        CALL MOVE_BALL                          ; move the ball
+                        CALL DRAW_BALL                          ; draw the ball
+                        CALL MOVE_PADDLES                       ; paddle movement functionality
+                        CALL DRAW_PADDLES                       ; draw paddles	
+                        CALL DRAW_UI                            ; draw UI
 			
-                        CALL MOVE_BALL                  ;move the ball
-                        CALL DRAW_BALL                  ;draw the ball
-			
-                        CALL MOVE_PADDLES               ;move the two paddles (check for pressing of keys)
-                        CALL DRAW_PADDLES               ;draw the two paddles with the updated positions
-			
-                        CALL DRAW_UI                    ;draw the game User Interface
-			
-                        JMP CHECK_TIME                  ;after everything checks time again
+                        JMP CHECK_TIME
 			
 			SHOW_GAME_OVER:
 				CALL DRAW_GAME_OVER_MENU
@@ -111,57 +105,45 @@ CODE SEGMENT PARA 'CODE'
 	
         MOVE_BALL PROC NEAR
 
-
-                ;Move the ball horizontally:
-
+                ; ball horizontal movement:
                 MOV AX, BALL_VELOCITY_X    
                 ADD BALL_X, AX                   
 
-
-                ;Check if the ball has passed the left boundary (BALL_X < 0 + WINDOW_BOUNDS)
-
-
-                ;If is colliding, reset its position:
-
+                ; check left boundary collision:
                 MOV AX, WINDOW_BOUNDS
-                CMP BALL_X, AX                          ;BALL_X is compared with the left boundary of the screen (0 + WINDOW_BOUNDS)          
-                JL GIVE_POINT_TO_PLAYER_TWO             ;if it is less, give one point to the player two and reset ball position
+                CMP BALL_X, AX                          ; if (BALL_X < WINDOW_BOUNDS)  
+                JL GIVE_POINT_TO_PLAYER_TWO             ;       p2Score();
 
-
-                ;Check if the ball has passed the right boundarie (BALL_X > WINDOW_WIDTH - BALL_SIZE  - WINDOW_BOUNDS)
-
-
-                ;If is colliding, reset its position:
-
+                ; check right boundary collision:
                 MOV AX, WINDOW_WIDTH
                 SUB AX, BALL_SIZE
                 SUB AX, WINDOW_BOUNDS
-                CMP BALL_X, AX                          ;BALL_X is compared with the right boundarie of the screen (BALL_X > WINDOW_WIDTH - BALL_SIZE  - WINDOW_BOUNDS)  
-                JG GIVE_POINT_TO_PLAYER_ONE             ;if is greater, give one point to the player one and reset ball position
+                CMP BALL_X, AX                          ; if (BALL_X > WINDOW_WIDTH - BALL_SIZE - WINDOW_BOUNDS)  
+                JG GIVE_POINT_TO_PLAYER_ONE             ;       p1Score();
 		JMP MOVE_BALL_VERTICALLY
 		
-                GIVE_POINT_TO_PLAYER_ONE:                       ;give one point to the player one and reset ball position
-                        INC PLAYER_ONE_POINTS                   ;increment player one points
-                        CALL RESET_BALL_POSITION                ;reset ball position to the center of the screen
+                GIVE_POINT_TO_PLAYER_ONE:                       ; void p1Score() {
+                        INC PLAYER_ONE_POINTS                   ;       player1.score++;
+                        CALL RESET_BALL_POSITION                ;       resetBallPosition();
 			
-                        CALL UPDATE_TEXT_PLAYER_ONE_POINTS      ;update the text of the player one points
+                        CALL UPDATE_TEXT_PLAYER_ONE_POINTS      ;       updateUI(player1);
 			
-                        CMP PLAYER_ONE_POINTS, 05h              ;check if this player has reached 5 points
-                        JGE GAME_OVER                           ;if this player points is 5 or more, the game is over
-			RET
+                        CMP PLAYER_ONE_POINTS, 05h              ;       if (player1.score >= 5)
+                        JGE GAME_OVER                           ;               gameOver();
+                        RET                                     ; }
 		
-                GIVE_POINT_TO_PLAYER_TWO:               ;give one point to the player two and reset ball position
-                        INC PLAYER_TWO_POINTS           ;increment player two points
-                        CALL RESET_BALL_POSITION        ;reset ball position to the center of the screen
+                GIVE_POINT_TO_PLAYER_TWO:                       ;  void p2Score() {
+                        INC PLAYER_TWO_POINTS                   ;       player2.score++;
+                        CALL RESET_BALL_POSITION                ;       resetBallPosition();
 			
-                        CALL UPDATE_TEXT_PLAYER_TWO_POINTS      ;update the text of the player two points
+                        CALL UPDATE_TEXT_PLAYER_TWO_POINTS      ;       updateUI(player2);
 			
-                        CMP PLAYER_TWO_POINTS, 05h      ;check if this player has reached 5 points
-                        JGE GAME_OVER                   ;if this player points is 5 or more, the game is over
-			RET
+                        CMP PLAYER_TWO_POINTS, 05h              ;       if (player2.score >= 5)
+                        JGE GAME_OVER                           ;               gameOver();
+			RET                                     ; }
 			
                 GAME_OVER:
-                        CMP PLAYER_ONE_POINTS, 05h      ;check which player has 5 or more points
+                        CMP PLAYER_ONE_POINTS, 05h              ; check which player has 5 or more points
                         JNL WINNER_IS_PLAYER_ONE
                         JMP WINNER_IS_PLAYER_TWO
 			
@@ -181,31 +163,25 @@ CODE SEGMENT PARA 'CODE'
 				RET	
 
 
-        ;Move the ball vertically:
-
+                ; ball vertical movement:
 		MOVE_BALL_VERTICALLY:		
                         MOV AX, BALL_VELOCITY_Y
                         ADD BALL_Y, AX             
 		
-        ;Check if the ball has passed the top boundary (BALL_Y < 0 + WINDOW_BOUNDS)
-        ;If is colliding, reverse the velocity in Y:
+                ; top boundary collision:
+		MOV AX, WINDOW_BOUNDS
+		CMP BALL_Y, AX
+		JL NEG_VELOCITY_Y                       ; reverse vertical velocity
 
-		MOV AX,WINDOW_BOUNDS
-		CMP BALL_Y,AX                    ;BALL_Y is compared with the top boundarie of the screen (0 + WINDOW_BOUNDS)
-		JL NEG_VELOCITY_Y                ;if is less reverve the velocity in Y
-
-        ;Check if the ball has passed the bottom boundary (BALL_Y > WINDOW_HEIGHT - BALL_SIZE - WINDOW_BOUNDS)
-        ;If is colliding, reverse the velocity in Y:
-
+                ; bottom boundary collision:
                 MOV AX, WINDOW_HEIGHT 
                 SUB AX, BALL_SIZE
                 SUB AX, WINDOW_BOUNDS
-                CMP BALL_Y, AX                    ;BALL_Y is compared with the bottom boundarie of the screen (BALL_Y > WINDOW_HEIGHT - BALL_SIZE - WINDOW_BOUNDS)
-                JG NEG_VELOCITY_Y                 ;if is greater reverve the velocity in Y
+                CMP BALL_Y, AX                          ; if (BALL_Y > WINDOW_HEIGHT - BALL_SIZE - WINDOW_BOUNDS)
+                JG NEG_VELOCITY_Y                       ;       BALL_VELOCITY_Y *= -1;
 
 
-                ;Check if the ball is colliding with the right paddle:
-
+                ; right paddle collision:
 		; maxx1 > minx2 && minx1 < maxx2 && maxy1 > miny2 && miny1 < maxy2
 		; BALL_X + BALL_SIZE > PADDLE_RIGHT_X && BALL_X < PADDLE_RIGHT_X + PADDLE_WIDTH 
 		; && BALL_Y + BALL_SIZE > PADDLE_RIGHT_Y && BALL_Y < PADDLE_RIGHT_Y + PADDLE_HEIGHT
@@ -227,12 +203,13 @@ CODE SEGMENT PARA 'CODE'
 		
 		MOV AX,PADDLE_RIGHT_Y
 		ADD AX,PADDLE_HEIGHT
-		CMP BALL_Y,AX
+		CMP BALL_Y, AX
 		JNL CHECK_COLLISION_WITH_LEFT_PADDLE
 		
 		JMP NEG_VELOCITY_X
 
 		CHECK_COLLISION_WITH_LEFT_PADDLE:
+                ; left paddle collision:
 		; maxx1 > minx2 && minx1 < maxx2 && maxy1 > miny2 && miny1 < maxy2
 		; BALL_X + BALL_SIZE > PADDLE_LEFT_X && BALL_X < PADDLE_LEFT_X + PADDLE_WIDTH 
 		; && BALL_Y + BALL_SIZE > PADDLE_LEFT_Y && BALL_Y < PADDLE_LEFT_Y + PADDLE_HEIGHT
@@ -240,22 +217,22 @@ CODE SEGMENT PARA 'CODE'
                 MOV AX, BALL_X
                 ADD AX, BALL_SIZE
                 CMP AX, PADDLE_LEFT_X
-		JNG EXIT_COLLISION_CHECK  ;if there's no collision exit procedure
+		JNG EXIT_COLLISION_CHECK  ; if no collision exit procedure
 		
                 MOV AX, PADDLE_LEFT_X
                 ADD AX, PADDLE_WIDTH
                 CMP BALL_X, AX
-		JNL EXIT_COLLISION_CHECK  ;if there's no collision exit procedure
+		JNL EXIT_COLLISION_CHECK  ; if no collision exit procedure
 		
                 MOV AX, BALL_Y
                 ADD AX, BALL_SIZE
                 CMP AX, PADDLE_LEFT_Y
-		JNG EXIT_COLLISION_CHECK  ;if there's no collision exit procedure
+		JNG EXIT_COLLISION_CHECK  ; if no collision exit procedure
 		
                 MOV AX, PADDLE_LEFT_Y
                 ADD AX, PADDLE_HEIGHT
                 CMP BALL_Y, AX
-		JNL EXIT_COLLISION_CHECK  ;if there's no collision exit procedure
+		JNL EXIT_COLLISION_CHECK  ; if no collision exit procedure
 		
 
 		JMP NEG_VELOCITY_X
@@ -273,22 +250,21 @@ CODE SEGMENT PARA 'CODE'
 	
 	MOVE_PADDLES PROC NEAR
 
-		;check if any key is being pressed (if not check the other paddle)
-
+		; check if any key is being pressed (if not check the other paddle)
                 MOV AH, 01h
 		INT 16h
-                JZ CHECK_RIGHT_PADDLE_MOVEMENT  ;ZF = 1, JZ -> Jump If Zero
+                JZ CHECK_RIGHT_PADDLE_MOVEMENT
 		
                 MOV AH, 00h
 		INT 16h
 		
-		;if it is 'w' or 'W' move up
-                CMP AL, 77h                     ;77 = w
+		; if key pressed is 'w' or 'W' move up
+                CMP AL, 77h                     ; 77 = w
 		JE MOVE_LEFT_PADDLE_UP
-                CMP AL, 57h                     ;57 = W
+                CMP AL, 57h                     ; 57 = W
 		JE MOVE_LEFT_PADDLE_UP
 		
-		;if it is 's' or 'S' move down
+		; if key pressed is 's' or 'S' move down
                 CMP AL, 73h
 		JE MOVE_LEFT_PADDLE_DOWN
                 CMP AL, 53h
@@ -307,7 +283,8 @@ CODE SEGMENT PARA 'CODE'
 			FIX_PADDLE_LEFT_TOP_POSITION:
                                 MOV PADDLE_LEFT_Y, AX
 				JMP CHECK_RIGHT_PADDLE_MOVEMENT
-			
+
+
 		MOVE_LEFT_PADDLE_DOWN:
                         MOV AX, PADDLE_VELOCITY
                         ADD PADDLE_LEFT_Y, AX
@@ -322,21 +299,11 @@ CODE SEGMENT PARA 'CODE'
                                 MOV PADDLE_LEFT_Y, AX
 				JMP CHECK_RIGHT_PADDLE_MOVEMENT
 		
-		
-                ;Right paddle movement:
-
+                ; 8 = up, 2 = down (numlock enabled is strongly adviced)
 		CHECK_RIGHT_PADDLE_MOVEMENT:
-		
-			;if it is 'o' or 'O' move up
-                        CMP AL, 6Fh                     ;6F = o
-			JE MOVE_RIGHT_PADDLE_UP
-                        CMP AL, 4Fh                     ;4F = O
-			JE MOVE_RIGHT_PADDLE_UP
-			
-			;if it is 'l' or 'L' move down
-                        CMP AL, 6Ch
-			JE MOVE_RIGHT_PADDLE_DOWN
-                        CMP AL, 4Ch
+                        CMP AL, 38h
+			JE MOVE_RIGHT_PADDLE_UP			
+                        CMP AL, 32h
 			JE MOVE_RIGHT_PADDLE_DOWN
 			JMP EXIT_PADDLE_MOVEMENT
 			
@@ -592,7 +559,7 @@ CODE SEGMENT PARA 'CODE'
 		
                 MOV AH, 02h
                 MOV BH, 00h
-                MOV DH, 04h
+                MOV DH, 02h
                 MOV DL, 04h
 		INT 10h							 
 		
@@ -613,16 +580,6 @@ CODE SEGMENT PARA 'CODE'
                 MOV AH, 02h
                 MOV BH, 00h
                 MOV DH, 08h
-                MOV DL, 04h
-		INT 10h							 
-		
-                MOV AH, 09h
-                LEA DX, TEXT_MAIN_MENU_MULTIPLAYER
-		INT 21h
-		
-                MOV AH, 02h
-                MOV BH, 00h
-                MOV DH, 0Ah
                 MOV DL, 04h
 		INT 10h							 
 		
